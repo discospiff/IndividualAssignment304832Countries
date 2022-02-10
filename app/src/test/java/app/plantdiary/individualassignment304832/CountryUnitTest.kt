@@ -26,6 +26,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.rules.TestRule
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * IMPORTANT!  YOU SHOULD NOT MAKE ANY CHANGES TO THIS FILE AS PART OF THE INDIVIDUAL ASSIGNMENT.
@@ -122,13 +124,20 @@ class CountryUnitTest {
     }
 
     private fun thenResultsShouldContainBelize() {
-        var allCountries : List<Country> = ArrayList<Country>()
-        mvm.countries.observeForever {
-           allCountries = it
+        var allCountries : List<Country>? = ArrayList<Country>()
+        val latch = CountDownLatch(1);
+        val observer = object : Observer<List<Country>> {
+            override fun onChanged(t: List<Country>?) {
+                allCountries = t
+                latch.countDown()
+                mvm.countries.removeObserver(this)
+            }
         }
-        Thread.sleep(1000)
+        mvm.countries.observeForever(observer)
+
+        latch.await(30, TimeUnit.SECONDS)
         assertNotNull(allCountries)
-        assertTrue(allCountries.contains(Country("BZ", "Belize")))
+        assertTrue(allCountries!!.contains(Country("BZ", "Belize")))
 
     }
 }
