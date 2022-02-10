@@ -135,7 +135,7 @@ class CountryUnitTest {
         }
         mvm.countries.observeForever(observer)
 
-        latch.await(30, TimeUnit.SECONDS)
+        latch.await(1, TimeUnit.SECONDS)
         assertNotNull(allCountries)
         assertTrue(allCountries!!.contains(Country("BZ", "Belize")))
 
